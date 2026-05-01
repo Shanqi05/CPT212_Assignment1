@@ -7,6 +7,8 @@ import java.math.BigInteger;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import common.DataGenerator;
+import karatsuba.Karatsuba;
 
 /**
  * Karatsuba_graph: Generates graph and CSV data for Karatsuba algorithm analysis
@@ -14,8 +16,8 @@ import java.io.IOException;
 public class Karatsuba_graph {
 
     public static void main(String[] args) throws Exception {
-        // Test sequence for smooth curve
-        int[] nValues = {1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+        // Test range: 2 to 10000 digits with detailed progression
+        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
         long[] karatsubaOps = new long[nValues.length];
 
         System.out.println("Karatsuba Algorithm Analysis");
@@ -82,7 +84,7 @@ public class Karatsuba_graph {
         // Main Title
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Karatsuba Algorithm: Primitive Operations vs Number of Digits", 130, 50);
+        g.drawString("Karatsuba Algorithm: Primitive Operations (2 to 10000 digits)", 130, 50);
 
         // Draw X and Y Axes
         g.setStroke(new BasicStroke(2));
@@ -112,18 +114,29 @@ public class Karatsuba_graph {
             g.drawString(label, 5, y + 6);  // Moved to left with better spacing
         }
 
-        // Draw X-axis markings
-        for (int i = 0; i < n.length; i++) {
-            int x = padding + (i * (w - padding - 100) / (n.length - 1));
-            g.drawString(String.valueOf(n[i]), x - 10, h - padding + 25);
+        // Draw X-axis markings (0, 1000, 2000... 10000)
+        g.setFont(new Font("Arial", Font.PLAIN, 11));
+        for (int scale = 0; scale <= 10000; scale += 1000) {
+            double position = scale / 10000.0;
+            int x = padding + (int)(position * (w - padding - 100));
+            
+            // Draw light grid line
+            g.setColor(new Color(220, 220, 220));
+            g.drawLine(x, padding + 20, x, h - padding);
+            
+            // Draw X-axis label
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(scale), x - 10, h - padding + 25);
         }
 
         // Plot the Karatsuba curve
         g.setColor(new Color(237, 125, 49)); // Orange color
         g.setStroke(new BasicStroke(3));
         for (int i = 0; i < n.length - 1; i++) {
-            int x1 = padding + (i * (w - padding - 100) / (n.length - 1));
-            int x2 = padding + ((i + 1) * (w - padding - 100) / (n.length - 1));
+            double pos1 = n[i] / 10000.0;
+            double pos2 = n[i + 1] / 10000.0;
+            int x1 = padding + (int)(pos1 * (w - padding - 100));
+            int x2 = padding + (int)(pos2 * (w - padding - 100));
 
             int y1 = (h - padding) - (int)(operations[i] * (h - 2 * padding) / maxVal);
             int y2 = (h - padding) - (int)(operations[i+1] * (h - 2 * padding) / maxVal);
@@ -133,7 +146,8 @@ public class Karatsuba_graph {
 
         // Draw data points
         for (int i = 0; i < n.length; i++) {
-            int x = padding + (i * (w - padding - 100) / (n.length - 1));
+            double position = n[i] / 10000.0;
+            int x = padding + (int)(position * (w - padding - 100));
             int y = (h - padding) - (int)(operations[i] * (h - 2 * padding) / maxVal);
             g.setColor(new Color(237, 125, 49));
             g.fillOval(x - 5, y - 5, 10, 10);

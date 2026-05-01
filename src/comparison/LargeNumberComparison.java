@@ -14,8 +14,7 @@ import simple.SimpleMultiplication;
 import karatsuba.Karatsuba;
 
 /**
- * LargeNumberComparison: Compares algorithms for extremely large numbers
- * Tests range: 0 to 1000 digits (increments of 100)
+ * LargeNumberComparison: Compares algorithms for large numbers (0 to 10000 digits)
  */
 public class LargeNumberComparison {
     private static final int WIDTH = 1200;
@@ -23,18 +22,18 @@ public class LargeNumberComparison {
     private static final int PADDING = 120;
 
     public static void main(String[] args) throws Exception {
-        // Test range: 0, 100, 200, 300, ... 1000 digits
-        int[] nValues = {10, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+        // Test range: 2 to 10000 digits with detailed progression
+        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
         long[] simpleOps = new long[nValues.length];
         long[] karatsubaOps = new long[nValues.length];
 
-        System.out.println("╔════════════════════════════════════════════════════╗");
-        System.out.println("║   LARGE NUMBER COMPARISON (10 to 1000 digits)      ║");
-        System.out.println("╚════════════════════════════════════════════════════╝");
+        System.out.println("╔════════════════════════════════════════════════════════════════╗");
+        System.out.println("║   LARGE NUMBER COMPARISON (2 to 10000 digits)                  ║");
+        System.out.println("╚════════════════════════════════════════════════════════════════╝");
         System.out.println();
-        System.out.printf("%-12s | %-18s | %-18s | %-10s\n", 
-            "n (Digits)", "Simple Mult.", "Karatsuba", "Ratio");
-        System.out.println("-------------|-------------------|-------------------|----------");
+        System.out.printf("%-12s | %-18s | %-18s\n",
+            "n (Digits)", "Simple Mult.", "Karatsuba");
+        System.out.println("-------------|-------------------|-------------------");
 
         for (int i = 0; i < nValues.length; i++) {
             BigInteger[] data = DataGenerator.generate(nValues[i]);
@@ -48,12 +47,11 @@ public class LargeNumberComparison {
             Karatsuba.multiply(data[0], data[1]);
             karatsubaOps[i] = Karatsuba.counter.getTotalOperations();
 
-            double ratio = simpleOps[i] > 0 ? (double) karatsubaOps[i] / simpleOps[i] : 0;
-            System.out.printf("%-12d | %17d | %17d | %10.4f\n",
-                nValues[i], simpleOps[i], karatsubaOps[i], ratio);
+            System.out.printf("%-12d | %17d | %17d\n",
+                nValues[i], simpleOps[i], karatsubaOps[i]);
         }
 
-        System.out.println("-------------|-------------------|-------------------|----------");
+        System.out.println("-------------|-------------------|-------------------");
         System.out.println();
 
         // Generate outputs
@@ -69,11 +67,10 @@ public class LargeNumberComparison {
      */
     private static void saveToCSV(int[] n, long[] simple, long[] karatsuba) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("large_comparison_results.csv"))) {
-            writer.println("n,Simple_Multiplication,Karatsuba,Ratio_Karatsuba_to_Simple");
+            writer.println("n,Simple_Multiplication,Karatsuba");
 
             for (int i = 0; i < n.length; i++) {
-                double ratio = simple[i] > 0 ? (double) karatsuba[i] / simple[i] : 0;
-                writer.printf("%d,%d,%d,%.4f\n", n[i], simple[i], karatsuba[i], ratio);
+                writer.printf("%d,%d,%d\n", n[i], simple[i], karatsuba[i]);
             }
         } catch (IOException e) {
             System.err.println("Error writing CSV file: " + e.getMessage());
@@ -115,11 +112,11 @@ public class LargeNumberComparison {
         int divisions = 10;
         for (int i = 0; i <= divisions; i++) {
             int y = (HEIGHT - PADDING) - (i * (HEIGHT - 2 * PADDING) / divisions);
-            
+
             // Light grid lines
             g.setColor(new Color(240, 240, 240));
             g.drawLine(PADDING + 5, y, WIDTH - 30, y);
-            
+
             // Y-axis scale values
             g.setColor(Color.BLACK);
             long scaleValue = (maxVal * i / divisions);
@@ -134,7 +131,7 @@ public class LargeNumberComparison {
             g.drawString(label, PADDING - 60, y + 5);
         }
 
-        // Y-axis label (rotated) - "Primitive Operations"
+        // Y-axis label (rotated)
         AffineTransform aff = new AffineTransform();
         aff.rotate(-Math.PI / 2);
         Graphics2D g2d = (Graphics2D) g;
@@ -143,11 +140,20 @@ public class LargeNumberComparison {
         g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 20);
         g2d.setTransform(new AffineTransform());
 
-        // X-axis labels - just the numbers without parentheses
+        // X-axis labels (0, 1000, 2000... 10000) - fixed scale from 0 to 10000
         g.setFont(new Font("Arial", Font.PLAIN, 12));
-        for (int i = 0; i < n.length; i++) {
-            int x = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
-            g.drawString(String.valueOf(n[i]), x - 15, HEIGHT - PADDING + 25);
+        for (int scale = 0; scale <= 10000; scale += 1000) {
+            // Map scale value (0-10000) to pixel position
+            double position = scale / 10000.0;
+            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
+            
+            // Draw light grid line
+            g.setColor(new Color(240, 240, 240));
+            g.drawLine(x, PADDING + 20, x, HEIGHT - PADDING);
+            
+            // Draw X-axis label
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(scale), x - 15, HEIGHT - PADDING + 25);
         }
 
         // X-axis label (bottom)
@@ -158,8 +164,10 @@ public class LargeNumberComparison {
         g.setStroke(new BasicStroke(3.5f));
         g.setColor(new Color(220, 20, 60)); // Red
         for (int i = 0; i < n.length - 1; i++) {
-            int x1 = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
-            int x2 = PADDING + ((i + 1) * (WIDTH - PADDING - 100) / (n.length - 1));
+            double pos1 = n[i] / 10000.0;
+            double pos2 = n[i + 1] / 10000.0;
+            int x1 = PADDING + (int)(pos1 * (WIDTH - PADDING - 100));
+            int x2 = PADDING + (int)(pos2 * (WIDTH - PADDING - 100));
             int y1 = (HEIGHT - PADDING) - (int)(simple[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(simple[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
@@ -168,8 +176,10 @@ public class LargeNumberComparison {
         // Draw Karatsuba line (BLUE)
         g.setColor(new Color(30, 144, 255)); // Blue
         for (int i = 0; i < n.length - 1; i++) {
-            int x1 = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
-            int x2 = PADDING + ((i + 1) * (WIDTH - PADDING - 100) / (n.length - 1));
+            double pos1 = n[i] / 10000.0;
+            double pos2 = n[i + 1] / 10000.0;
+            int x1 = PADDING + (int)(pos1 * (WIDTH - PADDING - 100));
+            int x2 = PADDING + (int)(pos2 * (WIDTH - PADDING - 100));
             int y1 = (HEIGHT - PADDING) - (int)(karatsuba[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(karatsuba[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
@@ -177,7 +187,8 @@ public class LargeNumberComparison {
 
         // Draw data points
         for (int i = 0; i < n.length; i++) {
-            int x = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
+            double position = n[i] / 10000.0;
+            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
 
             // Simple point (red)
             int ys = (HEIGHT - PADDING) - (int)(simple[i] * (HEIGHT - 2 * PADDING) / maxVal);
@@ -214,3 +225,4 @@ public class LargeNumberComparison {
         ImageIO.write(img, "png", new File(filename));
     }
 }
+

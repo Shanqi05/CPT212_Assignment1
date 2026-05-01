@@ -1,6 +1,11 @@
 package karatsuba;
 
 import java.math.BigInteger;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
 import common.OperationCounter;
 import common.DataGenerator;
 
@@ -95,18 +100,133 @@ public class Karatsuba {
         return res;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         System.out.println("Karatsuba Algorithm Analysis");
         System.out.println("============================");
         System.out.printf("%-15s | %-20s\n", "n (Digits)", "Total Operations");
         System.out.println("-----------------------------");
 
-        for (int n = 1; n <= 100; n = (n == 1) ? 10 : n + 10) {
-            BigInteger[] data = DataGenerator.generate(n);
+        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+        long[] karatsubaOps = new long[nValues.length];
+        
+        for (int i = 0; i < nValues.length; i++) {
+            BigInteger[] data = DataGenerator.generate(nValues[i]);
             counter.reset();
             multiply(data[0], data[1]);
-            System.out.printf("%-15d | %-20d\n", n, counter.getTotalOperations());
+            karatsubaOps[i] = counter.getTotalOperations();
+            System.out.printf("%-15d | %-20d\n", nValues[i], karatsubaOps[i]);
         }
         System.out.println("============================");
+        System.out.println();
+        
+        // Generate outputs
+        drawKaratsubaGraph(nValues, karatsubaOps, "karatsuba_graph.png");
+        System.out.println("✓ Graph saved as 'karatsuba_graph.png'");
+    }
+    
+    public static void drawKaratsubaGraph(int[] n, long[] ops, String filename) throws Exception {
+        final int WIDTH = 1200;
+        final int HEIGHT = 700;
+        final int PADDING = 120;
+        
+        BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // White background
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // Calculate scale
+        long maxVal = 0;
+        for (long v : ops) if (v > maxVal) maxVal = v;
+        maxVal = (maxVal / 1000000 + 1) * 1000000;
+
+        // Title
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 18));
+        g.drawString("Karatsuba Algorithm Analysis (2 to 10000 digits)", 200, 40);
+
+        // Draw axes
+        g.setStroke(new BasicStroke(2.5f));
+        g.setColor(Color.BLACK);
+        g.drawLine(PADDING, HEIGHT - PADDING, WIDTH - 30, HEIGHT - PADDING);
+        g.drawLine(PADDING, HEIGHT - PADDING, PADDING, 70);
+
+        // Draw grid and Y-axis labels
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        int divisions = 10;
+        for (int i = 0; i <= divisions; i++) {
+            int y = (HEIGHT - PADDING) - (i * (HEIGHT - 2 * PADDING) / divisions);
+            g.setColor(new Color(240, 240, 240));
+            g.drawLine(PADDING + 5, y, WIDTH - 30, y);
+            g.setColor(Color.BLACK);
+            long scaleValue = (maxVal * i / divisions);
+            String label;
+            if (scaleValue >= 1000000) {
+                label = String.format("%.1fM", scaleValue / 1000000.0);
+            } else if (scaleValue >= 1000) {
+                label = String.format("%.0fK", scaleValue / 1000.0);
+            } else {
+                label = String.valueOf(scaleValue);
+            }
+            g.drawString(label, PADDING - 60, y + 5);
+        }
+
+        // Y-axis label
+        AffineTransform aff = new AffineTransform();
+        aff.rotate(-Math.PI / 2);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setTransform(aff);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 20);
+        g2d.setTransform(new AffineTransform());
+
+        // X-axis labels (0, 1000, 2000... 10000)
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        int maxDigits = 10000;
+        for (int scale = 0; scale <= maxDigits; scale += 1000) {
+            // Find position of this scale value (linear interpolation)
+            // min n = 2, max n = 10000
+            int minN = 2;
+            int maxN = 10000;
+            double position = ((double)(scale - minN) / (maxN - minN));
+            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
+            
+            // Draw light grid line
+            g.setColor(new Color(240, 240, 240));
+            g.drawLine(x, PADDING + 20, x, HEIGHT - PADDING);
+            
+            // Draw X-axis label
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(scale), x - 15, HEIGHT - PADDING + 25);
+        }
+
+        // X-axis label
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        g.drawString("Number of Digits", WIDTH / 2 - 70, HEIGHT - 10);
+
+        // Draw line
+        g.setStroke(new BasicStroke(3.5f));
+        g.setColor(new Color(30, 144, 255));
+        for (int i = 0; i < n.length - 1; i++) {
+            int x1 = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
+            int x2 = PADDING + ((i + 1) * (WIDTH - PADDING - 100) / (n.length - 1));
+            int y1 = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
+            int y2 = (HEIGHT - PADDING) - (int)(ops[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
+            g.drawLine(x1, y1, x2, y2);
+        }
+
+        // Draw data points
+        for (int i = 0; i < n.length; i++) {
+            int x = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
+            int y = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
+            g.setColor(new Color(30, 144, 255));
+            g.fillOval(x - 5, y - 5, 10, 10);
+        }
+
+        g.dispose();
+        ImageIO.write(img, "png", new File(filename));
     }
 }

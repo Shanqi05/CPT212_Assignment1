@@ -15,6 +15,10 @@ public class DataGenerator {
      * @return array containing two n-digit BigIntegers
      */
     public static BigInteger[] generate(int n) {
+        if (n == 0) {
+            return new BigInteger[]{BigInteger.ZERO, BigInteger.ZERO};
+        }
+
         StringBuilder s1 = new StringBuilder();
         StringBuilder s2 = new StringBuilder();
 
