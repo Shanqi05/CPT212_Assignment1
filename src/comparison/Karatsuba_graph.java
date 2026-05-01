@@ -1,3 +1,5 @@
+package comparison;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -7,6 +9,8 @@ import java.math.BigInteger;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import common.DataGenerator;
+import karatsuba.Karatsuba;
 
 /**
  * Karatsuba_graph: Generates graph and CSV data for Karatsuba algorithm analysis
@@ -18,9 +22,12 @@ public class Karatsuba_graph {
         int[] nValues = {1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
         long[] karatsubaOps = new long[nValues.length];
 
-        System.out.println("Karatsuba Algorithm Analysis");
-        System.out.println("============================");
-        System.out.println("n,Operations");
+        System.out.println("╔════════════════════════════════════════════════╗");
+        System.out.println("║   Karatsuba Algorithm Analysis (1 to 100 digits)║");
+        System.out.println("╚════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.printf("%-12s | %-20s\n", "n (Digits)", "Operations");
+        System.out.println("-------------|--------------------");
 
         for (int i = 0; i < nValues.length; i++) {
             int n = nValues[i];
@@ -30,15 +37,19 @@ public class Karatsuba_graph {
             Karatsuba.multiply(data[0], data[1]);
 
             karatsubaOps[i] = Karatsuba.counter.getTotalOperations();
-            System.out.println(n + "," + karatsubaOps[i]);
+            System.out.printf("%-12d | %20d\n", n, karatsubaOps[i]);
         }
+
+        System.out.println("-------------|--------------------");
+        System.out.println();
 
         // Save to CSV
         saveToCSV(nValues, karatsubaOps);
 
         // Generate the PNG plot
         drawGraph(nValues, karatsubaOps, "karatsuba_plot.png");
-        System.out.println("\n✓ karatsuba_plot.png generated successfully.");
+        System.out.println("✓ karatsuba_plot.png generated successfully.");
+        System.out.println("✓ karatsuba_data.csv generated successfully.");
     }
 
     /**
@@ -77,50 +88,66 @@ public class Karatsuba_graph {
         // Find max value to scale the Y-axis
         long maxVal = 0;
         for (long v : operations) if (v > maxVal) maxVal = v;
-        maxVal = (maxVal / 100000 + 1) * 100000;
+        maxVal = (maxVal / 50000 + 1) * 50000;
 
         // Main Title
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Karatsuba Algorithm: Primitive Operations vs Number of Digits", 130, 50);
+        g.drawString("Karatsuba Algorithm: Primitive Operations vs Number of Digits", 120, 50);
 
         // Draw X and Y Axes
-        g.setStroke(new BasicStroke(2));
-        g.drawLine(padding, h - padding, w - 50, h - padding); // X-axis
+        g.setStroke(new BasicStroke(2.5f));
+        g.setColor(Color.BLACK);
+        g.drawLine(padding, h - padding, w - 30, h - padding); // X-axis
         g.drawLine(padding, h - padding, padding, 80);        // Y-axis
 
-        // Axis Labels
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Number of Digits (n)", w / 2 - 70, h - 40);
-
-        // Y-axis label (rotated)
+        // Y-axis label (rotated) - "Primitive Operations"
         AffineTransform aff = new AffineTransform();
         aff.rotate(-Math.PI / 2);
-        g.setTransform(aff);
-        g.drawString("Primitive Operations", -h/2 - 30, 30);
-        g.setTransform(new AffineTransform());
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setTransform(aff);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        g.drawString("Primitive Operations", -h/2 + 30, 20);
+        g2d.setTransform(new AffineTransform());
 
-        // Draw Y-axis markings and grid lines
-        g.setFont(new Font("Arial", Font.PLAIN, 11));
+        // Draw Y-axis markings and grid lines with proper scale
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
         int divisions = 10;
         for (int i = 0; i <= divisions; i++) {
             int y = (h - padding) - (i * (h - 2 * padding) / divisions);
-            g.setColor(new Color(220, 220, 220));
-            g.drawLine(padding, y, w - 50, y); // Grid line
+            
+            // Light grid lines
+            g.setColor(new Color(240, 240, 240));
+            g.drawLine(padding + 5, y, w - 30, y);
+            
+            // Y-axis scale values
             g.setColor(Color.BLACK);
-            String label = String.format("%d", (maxVal * i / divisions) / 1000) + "K";
-            g.drawString(label, 5, y + 6);  // Moved to left with better spacing
+            long scaleValue = (maxVal * i / divisions);
+            String label;
+            if (scaleValue >= 1000000) {
+                label = String.format("%.1fM", scaleValue / 1000000.0);
+            } else if (scaleValue >= 1000) {
+                label = String.format("%.0fK", scaleValue / 1000.0);
+            } else {
+                label = String.valueOf(scaleValue);
+            }
+            g.drawString(label, padding - 60, y + 5);
         }
 
-        // Draw X-axis markings
+        // Draw X-axis labels - just numbers without parentheses
+        g.setFont(new Font("Arial", Font.PLAIN, 12));
         for (int i = 0; i < n.length; i++) {
             int x = padding + (i * (w - padding - 100) / (n.length - 1));
             g.drawString(String.valueOf(n[i]), x - 10, h - padding + 25);
         }
 
-        // Plot the Karatsuba curve
-        g.setColor(new Color(237, 125, 49)); // Orange color
-        g.setStroke(new BasicStroke(3));
+        // X-axis label (bottom)
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        g.drawString("Number of Digits", w / 2 - 70, h - 10);
+
+        // Plot the Karatsuba curve (Blue line)
+        g.setColor(new Color(30, 144, 255)); // Blue
+        g.setStroke(new BasicStroke(3.5f));
         for (int i = 0; i < n.length - 1; i++) {
             int x1 = padding + (i * (w - padding - 100) / (n.length - 1));
             int x2 = padding + ((i + 1) * (w - padding - 100) / (n.length - 1));
@@ -135,20 +162,20 @@ public class Karatsuba_graph {
         for (int i = 0; i < n.length; i++) {
             int x = padding + (i * (w - padding - 100) / (n.length - 1));
             int y = (h - padding) - (int)(operations[i] * (h - 2 * padding) / maxVal);
-            g.setColor(new Color(237, 125, 49));
+            g.setColor(new Color(30, 144, 255));
             g.fillOval(x - 5, y - 5, 10, 10);
         }
 
-        // Legend at the bottom
-        g.setColor(new Color(237, 125, 49));
-        g.fillRect(w / 2 - 60, h - 25, 15, 15);
+        // Legend with colored line
+        g.setFont(new Font("Arial", Font.BOLD, 13));
+        int legendX = w - 280;
+        int legendY = 80;
+        
+        g.setStroke(new BasicStroke(3));
+        g.setColor(new Color(30, 144, 255));
+        g.drawLine(legendX, legendY, legendX + 25, legendY);
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 12));
-        g.drawString("Operations O(n^1.585)", w / 2 - 40, h - 12);
-
-        // Add complexity note
-        g.setFont(new Font("Arial", Font.ITALIC, 10));
-        g.drawString("Theoretical: O(n^1.585) ≈ O(n^log₂3)", padding, h - 55);
+        g.drawString("Karatsuba Operation", legendX + 35, legendY + 5);
 
         g.dispose();
         ImageIO.write(img, "png", new File(file));
