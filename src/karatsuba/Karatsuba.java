@@ -215,8 +215,10 @@ public class Karatsuba {
         g.setStroke(new BasicStroke(3.5f));
         g.setColor(new Color(30, 144, 255));
         for (int i = 0; i < n.length - 1; i++) {
-            int x1 = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
-            int x2 = PADDING + ((i + 1) * (WIDTH - PADDING - 100) / (n.length - 1));
+            double pos1 = n[i] / 10000.0;
+            double pos2 = n[i + 1] / 10000.0;
+            int x1 = PADDING + (int)(pos1 * (WIDTH - PADDING - 100));
+            int x2 = PADDING + (int)(pos2 * (WIDTH - PADDING - 100));
             int y1 = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(ops[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
@@ -224,7 +226,8 @@ public class Karatsuba {
 
         // Draw data points
         for (int i = 0; i < n.length; i++) {
-            int x = PADDING + (i * (WIDTH - PADDING - 100) / (n.length - 1));
+            double position = n[i] / 10000.0;
+            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
             int y = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
             g.setColor(new Color(30, 144, 255));
             g.fillOval(x - 5, y - 5, 10, 10);
