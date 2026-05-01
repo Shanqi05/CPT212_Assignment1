@@ -24,15 +24,31 @@ cd src
 javac common/*.java simple/*.java karatsuba/*.java comparison/*.java
 ```
 
-### Step 3: Run Large Number Comparison (2-10000 digits)
+### Step 3: Run All Three Programs
+
+**Program 1: Simple Multiplication Algorithm**
+```
+java -cp . simple.SimpleMultiplication
+```
+Output: Terminal display of operations count + `simple_multiplication_graph.png`
+
+**Program 2: Karatsuba Algorithm**
+```
+java -cp . karatsuba.Karatsuba
+```
+Output: Terminal display of operations count + `karatsuba_graph.png`
+
+**Program 3: Large Number Comparison (2-10000 digits)**
 ```
 java -cp . comparison.LargeNumberComparison
 ```
+Output: Terminal display comparing both algorithms + `large_comparison_graph.png` + `large_comparison_results.csv`
 
 ---
 
-## Output Files
-- simple_multiplication_graph.png
-- karatsuba_graph.png
-- large_comparison_graph.png
-- large_comparison_results.csv
+## Output Files Generated
+All output files are saved in the `src/` directory:
+- `simple_multiplication_graph.png` - Graph of Simple Multiplication performance
+- `karatsuba_graph.png` - Graph of Karatsuba performance
+- `large_comparison_graph.png` - Comparison graph of both algorithms
+- `large_comparison_results.csv` - Data table with operation counts
