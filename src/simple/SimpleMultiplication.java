@@ -141,10 +141,14 @@ public class SimpleMultiplication {
         for (long v : ops) if (v > maxVal) maxVal = v;
         maxVal = (maxVal / 1000000 + 1) * 1000000;
 
-        // Title
+        // Title - centered
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Simple Multiplication Algorithm Analysis (2 to 10000 digits)", 140, 40);
+        g.setFont(new Font("Arial", Font.BOLD, 26));
+        String title = "Simple Multiplication Algorithm Analysis";
+        FontMetrics fm = g.getFontMetrics();
+        int titleWidth = fm.stringWidth(title);
+        int titleX = (WIDTH - titleWidth) / 2;
+        g.drawString(title, titleX, 45);
 
         // Draw axes
         g.setStroke(new BasicStroke(2.5f));
@@ -153,7 +157,7 @@ public class SimpleMultiplication {
         g.drawLine(PADDING, HEIGHT - PADDING, PADDING, 70);
 
         // Draw grid and Y-axis labels
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        g.setFont(new Font("Arial", Font.PLAIN, 13));
         int divisions = 10;
         for (int i = 0; i <= divisions; i++) {
             int y = (HEIGHT - PADDING) - (i * (HEIGHT - 2 * PADDING) / divisions);
@@ -177,12 +181,12 @@ public class SimpleMultiplication {
         aff.rotate(-Math.PI / 2);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setTransform(aff);
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 20);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 15);
         g2d.setTransform(new AffineTransform());
 
         // X-axis labels (0, 1000, 2000... 10000) - fixed scale from 0 to 10000
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        g.setFont(new Font("Arial", Font.PLAIN, 13));
         for (int scale = 0; scale <= 10000; scale += 1000) {
             // Map scale value (0-10000) to pixel position
             double position = scale / 10000.0;
@@ -198,8 +202,8 @@ public class SimpleMultiplication {
         }
 
         // X-axis label
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Number of Digits", WIDTH / 2 - 70, HEIGHT - 10);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Number of Digits", WIDTH / 2 - 80, HEIGHT - 10);
 
         // Draw line
         g.setStroke(new BasicStroke(3.5f));
@@ -222,6 +226,19 @@ public class SimpleMultiplication {
             g.setColor(new Color(220, 20, 60));
             g.fillOval(x - 5, y - 5, 10, 10);
         }
+
+        // Legend with colored line
+        g.setFont(new Font("Arial", Font.BOLD, 13));
+        int legendX = WIDTH - 280;
+        int legendY = 80;
+        int lineLength = 25;
+
+        // Red line for Simple Multiplication
+        g.setStroke(new BasicStroke(3));
+        g.setColor(new Color(220, 20, 60));
+        g.drawLine(legendX, legendY, legendX + lineLength, legendY);
+        g.setColor(Color.BLACK);
+        g.drawString("Simple Multiplication", legendX + 35, legendY + 5);
 
         g.dispose();
         ImageIO.write(img, "png", new File(filename));

@@ -96,10 +96,14 @@ public class LargeNumberComparison {
         for (long v : karatsuba) if (v > maxVal) maxVal = v;
         maxVal = (maxVal / 1000000 + 1) * 1000000;
 
-        // Title
+        // Title - centered
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Large Number Comparison: Primitive Operations Analysis", 130, 40);
+        g.setFont(new Font("Arial", Font.BOLD, 26));
+        String title = "Large Number Comparison: Primitive Operations Analysis";
+        FontMetrics fm = g.getFontMetrics();
+        int titleWidth = fm.stringWidth(title);
+        int titleX = (WIDTH - titleWidth) / 2;
+        g.drawString(title, titleX, 45);
 
         // Draw axes
         g.setStroke(new BasicStroke(2.5f));
@@ -108,7 +112,7 @@ public class LargeNumberComparison {
         g.drawLine(PADDING, HEIGHT - PADDING, PADDING, 70); // Y-axis
 
         // Draw grid and Y-axis labels with proper scale
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        g.setFont(new Font("Arial", Font.PLAIN, 13));
         int divisions = 10;
         for (int i = 0; i <= divisions; i++) {
             int y = (HEIGHT - PADDING) - (i * (HEIGHT - 2 * PADDING) / divisions);
@@ -136,12 +140,12 @@ public class LargeNumberComparison {
         aff.rotate(-Math.PI / 2);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setTransform(aff);
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 20);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 15);
         g2d.setTransform(new AffineTransform());
 
         // X-axis labels (0, 1000, 2000... 10000) - fixed scale from 0 to 10000
-        g.setFont(new Font("Arial", Font.PLAIN, 12));
+        g.setFont(new Font("Arial", Font.PLAIN, 13));
         for (int scale = 0; scale <= 10000; scale += 1000) {
             // Map scale value (0-10000) to pixel position
             double position = scale / 10000.0;
@@ -157,8 +161,8 @@ public class LargeNumberComparison {
         }
 
         // X-axis label (bottom)
-        g.setFont(new Font("Arial", Font.BOLD, 14));
-        g.drawString("Number of Digits", WIDTH / 2 - 70, HEIGHT - 10);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Number of Digits", WIDTH / 2 - 80, HEIGHT - 10);
 
         // Draw Simple Multiplication line (RED)
         g.setStroke(new BasicStroke(3.5f));
@@ -175,6 +179,7 @@ public class LargeNumberComparison {
 
         // Draw Karatsuba line (BLUE)
         g.setColor(new Color(30, 144, 255)); // Blue
+        g.setStroke(new BasicStroke(3.5f));
         for (int i = 0; i < n.length - 1; i++) {
             double pos1 = n[i] / 10000.0;
             double pos2 = n[i + 1] / 10000.0;
