@@ -27,13 +27,11 @@ public class LargeNumberComparison {
         long[] simpleOps = new long[nValues.length];
         long[] karatsubaOps = new long[nValues.length];
 
-        System.out.println("╔════════════════════════════════════════════════════════════════╗");
-        System.out.println("║   LARGE NUMBER COMPARISON (2 to 10000 digits)                  ║");
-        System.out.println("╚════════════════════════════════════════════════════════════════╝");
-        System.out.println();
-        System.out.printf("%-12s | %-18s | %-18s\n",
-            "n (Digits)", "Simple Mult.", "Karatsuba");
-        System.out.println("-------------|-------------------|-------------------");
+        System.out.println("╔════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                  LARGE NUMBER COMPARISON (2 to 10000 digits)                      ║");
+        System.out.println("╠════════════════════╦═══════════════════════════╦═══════════════════════════╣");
+        System.out.println("║   n (Digits)       ║  Simple Multiplication    ║   Karatsuba Operations    ║");
+        System.out.println("╠════════════════════╬═══════════════════════════╬═══════════════════════════╣");
 
         for (int i = 0; i < nValues.length; i++) {
             BigInteger[] data = DataGenerator.generate(nValues[i]);
@@ -47,12 +45,11 @@ public class LargeNumberComparison {
             Karatsuba.multiply(data[0], data[1]);
             karatsubaOps[i] = Karatsuba.counter.getTotalOperations();
 
-            System.out.printf("%-12d | %17d | %17d\n",
+            System.out.printf("║ %18d ║ %25d ║ %25d ║\n",
                 nValues[i], simpleOps[i], karatsubaOps[i]);
         }
 
-        System.out.println("-------------|-------------------|-------------------");
-        System.out.println();
+        System.out.println("╚════════════════════╩═══════════════════════════╩═══════════════════════════╝");
 
         // Generate outputs
         saveToCSV(nValues, simpleOps, karatsubaOps);
