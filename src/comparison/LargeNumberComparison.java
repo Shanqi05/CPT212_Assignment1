@@ -24,6 +24,43 @@ public class LargeNumberComparison {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Large Number Comparison Analysis...\n");
         
+        SimpleMultiplication.disableVerboseOutput = false;
+        
+        System.out.println("=========================================");
+        System.out.println("         MANUAL MULTIPLICATION           ");
+        System.out.println("=========================================");
+        System.out.print("Enter the Top Number (Multiplicand) : ");
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        String input1 = scanner.nextLine().trim();
+        System.out.print("Enter the Bottom Number (Multiplier): ");
+        String input2 = scanner.nextLine().trim();
+        
+        if (!input1.isEmpty() && !input2.isEmpty()) {
+            BigInteger num1 = new BigInteger(input1);
+            BigInteger num2 = new BigInteger(input2);
+            
+            System.out.println("\n--- Manual Step-by-Step Output ---");
+            SimpleMultiplication.multiply(num1, num2);
+            Karatsuba.multiply(num1, num2);
+        }
+        
+        System.out.println("=========================================\n");
+        System.out.println("--- AUTO-GENERATED STEP-BY-STEP (n=1 to n=10) ---\n");
+        
+        // Auto-generate for 1 to 10 digits
+        for (int digits = 1; digits <= 10; digits++) {
+            BigInteger[] data = DataGenerator.generate(digits);
+            System.out.println("Auto-generated numbers with " + digits + " digits:");
+            System.out.println("--- Simple Multiplication ---");
+            SimpleMultiplication.multiply(data[0], data[1]);
+            System.out.println("--- Karatsuba ---");
+            Karatsuba.multiply(data[0], data[1]);
+            System.out.println();
+        }
+        
+        System.out.println("=========================================\n");
+        System.out.println("Starting Automated Algorithm Analysis...\n");
+        
         // Disable verbose output for automated analysis
         SimpleMultiplication.disableVerboseOutput = true;
         

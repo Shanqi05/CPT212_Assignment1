@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
 import common.OperationCounter;
 import common.DataGenerator;
 
@@ -42,7 +41,6 @@ public class SimpleMultiplication {
         counter.recordAssignment(1); 
 
         boolean printSteps = !disableVerboseOutput && (m <= 10 && n <= 10);
-        // Padding width for alignment: multiplicand length + multiplier length
         int W = m + n; 
         
         if (printSteps) {
@@ -84,7 +82,6 @@ public class SimpleMultiplication {
                 carry = prod / 10;
                 currentCarriers[i] = carry;
 
-                // Step 2 logic: accumulate in result array
                 result[i + j + 1] += currentPartials[i];
                 
                 counter.recordArrayAccess(1);
@@ -106,22 +103,19 @@ public class SimpleMultiplication {
                 
                 int shift = (n - 1) - j;
                 
-                // Bulletproof string padding (avoids the %0s format error)
                 String pRow = String.format("%" + (W - shift) + "s", pStr.toString()) + " ".repeat(shift);
                 String cRow = String.format("%" + (W - shift - 1) + "s", cStr.toString()) + " ".repeat(shift + 1);
                 
-                // Print exactly to match the rubric's visual flow
                 System.out.printf("%s partial products for (=%s x %d)\n", pRow, sx, dy);
                 System.out.printf("%s carriers for (%s x %d)\n", cRow, sx, dy);
             }
         }
         
-        // Final carry handling for result array
         int finalCarry = 0;
         counter.recordAssignment(1);
         for (int k = result.length - 1; k >= 0; k--) {
             counter.recordComparison(1);
-            counter.recordAssignment(1); // For the k--
+            counter.recordAssignment(1);
 
             int val = result[k] + finalCarry;
             counter.recordArrayAccess(1);
@@ -146,16 +140,16 @@ public class SimpleMultiplication {
 
         for (int digit : result) {
             counter.recordArrayAccess(1); 
-            counter.recordAssignment(1); // For the implicit array iteration
+            counter.recordAssignment(1);
 
-            counter.recordComparison(2); // For the boolean check (leadingZero && digit == 0)
+            counter.recordComparison(2);
             if (leadingZero && digit == 0) continue;
 
             leadingZero = false;
             counter.recordAssignment(1);
 
             sb.append(digit);
-            counter.recordAddition(1); // Treating string append as addition
+            counter.recordAddition(1);
             counter.recordAssignment(1);
         }
         
@@ -172,7 +166,7 @@ public class SimpleMultiplication {
     }
     
     public static void main(String[] args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
 
         System.out.println("=========================================");
         System.out.println("         MANUAL MULTIPLICATION           ");
@@ -187,16 +181,30 @@ public class SimpleMultiplication {
             BigInteger num2 = new BigInteger(input2);
             
             System.out.println("\n--- Manual Step-by-Step Output ---");
+            disableVerboseOutput = false;
             multiply(num1, num2);
+            disableVerboseOutput = true;
+        }
+        
+        System.out.println("=========================================\n");
+        System.out.println("--- AUTO-GENERATED STEP-BY-STEP (n=1 to n=10) ---\n");
+        
+        // Auto-generate for 1 to 10 digits
+        for (int digits = 1; digits <= 10; digits++) {
+            BigInteger[] data = DataGenerator.generate(digits);
+            System.out.println("Auto-generated numbers with " + digits + " digits:");
+            System.out.println("--- Step-by-Step Output ---");
+            disableVerboseOutput = false;
+            multiply(data[0], data[1]);
+            disableVerboseOutput = true;
+            System.out.println();
         }
         
         System.out.println("=========================================\n");
         System.out.println("Starting Automated Algorithm Analysis...\n");
 
-        // Disable verbose output for automated analysis
         disableVerboseOutput = true;
 
-        // Generate n values from 1 to 10000 (every digit)
         int[] nValues = new int[10000];
         for (int i = 0; i < 10000; i++) {
             nValues[i] = i + 1;
@@ -204,7 +212,7 @@ public class SimpleMultiplication {
         
         long[] simpleOps = new long[nValues.length];
 
-        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
+        System.out.println("╔════════════════════════════════════════════════════════════╗");
         System.out.println("║     Simple Multiplication Algorithm Analysis (n=1-10000)    ║");
         System.out.println("╠════════════════════╦═══════════════════════════════════════╣");
         System.out.println("║   n (Digits)       ║      Total Operations               ║");
@@ -219,18 +227,12 @@ public class SimpleMultiplication {
         
         System.out.println("╚════════════════════╩═══════════════════════════════════════╝\n");
         
-        // Generate outputs (use all data points for graphing)
         saveToCSV(nValues, simpleOps);
         drawSimpleMultiplicationGraph(nValues, simpleOps, "simple_multiplication_graph.png");
         System.out.println("✓ CSV file 'simple_multiplication_results.csv' generated");
         System.out.println("✓ Graph saved as 'simple_multiplication_graph.png'");
-
-        scanner.close();
     }
     
-    /**
-     * Get output directory (src folder)
-     */
     private static String getOutputDir() {
         String currentDir = System.getProperty("user.dir");
         if (currentDir.endsWith("bin")) {
@@ -239,9 +241,6 @@ public class SimpleMultiplication {
         return currentDir;
     }
     
-    /**
-     * Save results to CSV file
-     */
     private static void saveToCSV(int[] n, long[] operations) {
         try {
             String outputDir = getOutputDir();
@@ -269,16 +268,13 @@ public class SimpleMultiplication {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        // White background
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // Calculate scale
         long maxVal = 0;
         for (long v : ops) if (v > maxVal) maxVal = v;
         maxVal = (maxVal / 1000000 + 1) * 1000000;
 
-        // Title - centered
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 26));
         String title = "Simple Multiplication Algorithm Analysis";
@@ -287,13 +283,11 @@ public class SimpleMultiplication {
         int titleX = (WIDTH - titleWidth) / 2;
         g.drawString(title, titleX, 45);
 
-        // Draw axes
         g.setStroke(new BasicStroke(2.5f));
         g.setColor(Color.BLACK);
         g.drawLine(PADDING, HEIGHT - PADDING, WIDTH - 30, HEIGHT - PADDING);
         g.drawLine(PADDING, HEIGHT - PADDING, PADDING, 70);
 
-        // Draw grid and Y-axis labels
         g.setFont(new Font("Arial", Font.PLAIN, 13));
         int divisions = 10;
         for (int i = 0; i <= divisions; i++) {
@@ -313,7 +307,6 @@ public class SimpleMultiplication {
             g.drawString(label, PADDING - 60, y + 5);
         }
 
-        // Y-axis label
         AffineTransform aff = new AffineTransform();
         aff.rotate(-Math.PI / 2);
         Graphics2D g2d = (Graphics2D) g;
@@ -322,27 +315,21 @@ public class SimpleMultiplication {
         g.drawString("Primitive Operations", -HEIGHT / 2 + 30, 15);
         g2d.setTransform(new AffineTransform());
 
-        // X-axis labels (0, 1000, 2000... 10000) - fixed scale from 0 to 10000
         g.setFont(new Font("Arial", Font.PLAIN, 13));
         for (int scale = 0; scale <= 10000; scale += 1000) {
-            // Map scale value (0-10000) to pixel position
             double position = scale / 10000.0;
             int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
             
-            // Draw light grid line
             g.setColor(new Color(240, 240, 240));
             g.drawLine(x, PADDING + 20, x, HEIGHT - PADDING);
             
-            // Draw X-axis label
             g.setColor(Color.BLACK);
             g.drawString(String.valueOf(scale), x - 15, HEIGHT - PADDING + 25);
         }
 
-        // X-axis label
         g.setFont(new Font("Arial", Font.BOLD, 16));
         g.drawString("Number of Digits", WIDTH / 2 - 80, HEIGHT - 10);
 
-        // Draw line (no dots - line only)
         g.setStroke(new BasicStroke(3.5f));
         g.setColor(new Color(220, 20, 60));
         for (int i = 0; i < n.length - 1; i++) {
@@ -355,13 +342,11 @@ public class SimpleMultiplication {
             g.drawLine(x1, y1, x2, y2);
         }
 
-        // Legend with colored line
         g.setFont(new Font("Arial", Font.BOLD, 13));
         int legendX = WIDTH - 280;
         int legendY = 80;
         int lineLength = 25;
 
-        // Red line for Simple Multiplication
         g.setStroke(new BasicStroke(3));
         g.setColor(new Color(220, 20, 60));
         g.drawLine(legendX, legendY, legendX + lineLength, legendY);
