@@ -165,6 +165,7 @@ public class Karatsuba {
         drawKaratsubaGraph(nValues, karatsubaOps, "karatsuba_graph.png");
         System.out.println("✓ CSV file 'karatsuba_results.csv' generated");
         System.out.println("✓ Graph saved as 'karatsuba_graph.png'");
+        scanner.close();
     }
     
     /**
