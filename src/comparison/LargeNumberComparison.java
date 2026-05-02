@@ -102,6 +102,7 @@ public class LargeNumberComparison {
 
         System.out.println("✓ CSV file 'large_comparison_results.csv' generated");
         System.out.println("✓ Graph saved as 'large_comparison_graph.png'");
+        scanner.close();
     }
 
     /**
