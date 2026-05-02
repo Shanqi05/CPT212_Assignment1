@@ -104,25 +104,33 @@ public class Karatsuba {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Karatsuba Algorithm Analysis");
-        System.out.println("============================");
-        System.out.printf("%-15s | %-20s\n", "n (Digits)", "Total Operations");
-        System.out.println("-----------------------------");
+        System.out.println("Starting Karatsuba Algorithm Analysis...\n");
 
-        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+        // Generate n values from 1 to 10000 (every digit)
+        int[] nValues = new int[10000];
+        for (int i = 0; i < 10000; i++) {
+            nValues[i] = i + 1;
+        }
+        
         long[] karatsubaOps = new long[nValues.length];
+        
+        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
+        System.out.println("║       Karatsuba Algorithm Analysis (n=1-10000)              ║");
+        System.out.println("╠════════════════════╦═══════════════════════════════════════╣");
+        System.out.println("║   n (Digits)       ║      Total Operations               ║");
+        System.out.println("╠════════════════════╬═══════════════════════════════════════╣");
         
         for (int i = 0; i < nValues.length; i++) {
             BigInteger[] data = DataGenerator.generate(nValues[i]);
             counter.reset();
             multiply(data[0], data[1]);
             karatsubaOps[i] = counter.getTotalOperations();
-            System.out.printf("%-15d | %-20d\n", nValues[i], karatsubaOps[i]);
+            System.out.printf("║ %18d ║ %35d ║\n", nValues[i], karatsubaOps[i]);
         }
-        System.out.println("============================");
-        System.out.println();
         
-        // Generate outputs
+        System.out.println("╚════════════════════╩═══════════════════════════════════════╝\n");
+        
+        // Generate outputs (use all data points for graphing)
         saveToCSV(nValues, karatsubaOps);
         drawKaratsubaGraph(nValues, karatsubaOps, "karatsuba_graph.png");
         System.out.println("✓ CSV file 'karatsuba_results.csv' generated");
@@ -247,7 +255,7 @@ public class Karatsuba {
         g.setFont(new Font("Arial", Font.BOLD, 16));
         g.drawString("Number of Digits", WIDTH / 2 - 80, HEIGHT - 10);
 
-        // Draw line
+        // Draw line (no dots - line only)
         g.setStroke(new BasicStroke(3.5f));
         g.setColor(new Color(30, 144, 255));
         for (int i = 0; i < n.length - 1; i++) {
@@ -258,15 +266,6 @@ public class Karatsuba {
             int y1 = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(ops[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
-        }
-
-        // Draw data points
-        for (int i = 0; i < n.length; i++) {
-            double position = n[i] / 10000.0;
-            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
-            int y = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
-            g.setColor(new Color(30, 144, 255));
-            g.fillOval(x - 5, y - 5, 10, 10);
         }
 
         // Legend with colored line

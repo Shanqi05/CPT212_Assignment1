@@ -19,6 +19,7 @@ import common.DataGenerator;
  */
 public class SimpleMultiplication {
     public static OperationCounter counter = new OperationCounter();
+    public static boolean disableVerboseOutput = false;
 
     /**
      * Multiply two BigIntegers using simple multiplication algorithm
@@ -40,7 +41,7 @@ public class SimpleMultiplication {
         int[] result = new int[m + n];
         counter.recordAssignment(1); 
 
-        boolean printSteps = (m <= 10 && n <= 10);
+        boolean printSteps = !disableVerboseOutput && (m <= 10 && n <= 10);
         // Padding width for alignment: multiplicand length + multiplier length
         int W = m + n; 
         
@@ -190,38 +191,35 @@ public class SimpleMultiplication {
         }
         
         System.out.println("=========================================\n");
-        System.out.println("Starting Automated Algorithm Analysis...");
+        System.out.println("Starting Automated Algorithm Analysis...\n");
 
-        int[] nValues = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+        // Disable verbose output for automated analysis
+        disableVerboseOutput = true;
+
+        // Generate n values from 1 to 10000 (every digit)
+        int[] nValues = new int[10000];
+        for (int i = 0; i < 10000; i++) {
+            nValues[i] = i + 1;
+        }
+        
         long[] simpleOps = new long[nValues.length];
 
-        System.out.println("--- STEP-BY-STEP VERIFICATION (n = 1 to 10) ---");
+        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
+        System.out.println("║     Simple Multiplication Algorithm Analysis (n=1-10000)    ║");
+        System.out.println("╠════════════════════╦═══════════════════════════════════════╣");
+        System.out.println("║   n (Digits)       ║      Total Operations               ║");
+        System.out.println("╠════════════════════╬═══════════════════════════════════════╣");
         
-        // 1. Calculate everything and print the step-by-step BEFORE the table
         for (int i = 0; i < nValues.length; i++) {
             BigInteger[] data = DataGenerator.generate(nValues[i]);
-
-            if (nValues[i] <= 10) {
-                System.out.println("Testing n=" + nValues[i] + ": " + data[0] + " x " + data[1]);
-            }
-
             multiply(data[0], data[1]);
             simpleOps[i] = counter.getTotalOperations();
+            System.out.printf("║ %18d ║ %35d ║\n", nValues[i], simpleOps[i]);
         }
         
-        // 2. Now print the clean, uninterrupted table
-        System.out.println("Simple Multiplication Algorithm Analysis");
-        System.out.println("=========================================");
-        System.out.printf("%-15s | %-20s\n", "n (Digits)", "Total Operations");
-        System.out.println("-----------------------------------------");
+        System.out.println("╚════════════════════╩═══════════════════════════════════════╝\n");
         
-        for (int i = 0; i < nValues.length; i++) {
-            System.out.printf("%-15d | %-20d\n", nValues[i], simpleOps[i]);
-        }
-        
-        System.out.println("=========================================\n");
-        
-        // Generate outputs
+        // Generate outputs (use all data points for graphing)
         saveToCSV(nValues, simpleOps);
         drawSimpleMultiplicationGraph(nValues, simpleOps, "simple_multiplication_graph.png");
         System.out.println("✓ CSV file 'simple_multiplication_results.csv' generated");
@@ -344,7 +342,7 @@ public class SimpleMultiplication {
         g.setFont(new Font("Arial", Font.BOLD, 16));
         g.drawString("Number of Digits", WIDTH / 2 - 80, HEIGHT - 10);
 
-        // Draw line
+        // Draw line (no dots - line only)
         g.setStroke(new BasicStroke(3.5f));
         g.setColor(new Color(220, 20, 60));
         for (int i = 0; i < n.length - 1; i++) {
@@ -355,15 +353,6 @@ public class SimpleMultiplication {
             int y1 = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(ops[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
-        }
-
-        // Draw data points
-        for (int i = 0; i < n.length; i++) {
-            double position = n[i] / 10000.0;
-            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
-            int y = (HEIGHT - PADDING) - (int)(ops[i] * (HEIGHT - 2 * PADDING) / maxVal);
-            g.setColor(new Color(220, 20, 60));
-            g.fillOval(x - 5, y - 5, 10, 10);
         }
 
         // Legend with colored line

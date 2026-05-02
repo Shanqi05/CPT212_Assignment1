@@ -22,17 +22,25 @@ public class LargeNumberComparison {
     private static final int PADDING = 120;
 
     public static void main(String[] args) throws Exception {
-        // Test range: 2 to 10000 digits with detailed progression
-        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+        System.out.println("Starting Large Number Comparison Analysis...\n");
+        
+        // Disable verbose output for automated analysis
+        SimpleMultiplication.disableVerboseOutput = true;
+        
+        // Generate n values from 1 to 10000 (every digit)
+        int[] nValues = new int[10000];
+        for (int i = 0; i < 10000; i++) {
+            nValues[i] = i + 1;
+        }
         long[] simpleOps = new long[nValues.length];
         long[] karatsubaOps = new long[nValues.length];
 
-        System.out.println("╔════════════════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                  LARGE NUMBER COMPARISON (2 to 10000 digits)                      ║");
+        System.out.println("\n╔════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                   LARGE NUMBER COMPARISON (n=1-10000)                           ║");
         System.out.println("╠════════════════════╦═══════════════════════════╦═══════════════════════════╣");
         System.out.println("║   n (Digits)       ║  Simple Multiplication    ║   Karatsuba Operations    ║");
         System.out.println("╠════════════════════╬═══════════════════════════╬═══════════════════════════╣");
-
+        
         for (int i = 0; i < nValues.length; i++) {
             BigInteger[] data = DataGenerator.generate(nValues[i]);
 
@@ -44,14 +52,14 @@ public class LargeNumberComparison {
             Karatsuba.counter.reset();
             Karatsuba.multiply(data[0], data[1]);
             karatsubaOps[i] = Karatsuba.counter.getTotalOperations();
-
+            
             System.out.printf("║ %18d ║ %25d ║ %25d ║\n",
                 nValues[i], simpleOps[i], karatsubaOps[i]);
         }
 
-        System.out.println("╚════════════════════╩═══════════════════════════╩═══════════════════════════╝");
+        System.out.println("╚════════════════════╩═══════════════════════════╩═══════════════════════════╝\n");
 
-        // Generate outputs
+        // Generate outputs (use all data points for graphing)
         saveToCSV(nValues, simpleOps, karatsubaOps);
         drawComparisonGraph(nValues, simpleOps, karatsubaOps, "large_comparison_graph.png");
 
@@ -201,22 +209,6 @@ public class LargeNumberComparison {
             int y1 = (HEIGHT - PADDING) - (int)(karatsuba[i] * (HEIGHT - 2 * PADDING) / maxVal);
             int y2 = (HEIGHT - PADDING) - (int)(karatsuba[i + 1] * (HEIGHT - 2 * PADDING) / maxVal);
             g.drawLine(x1, y1, x2, y2);
-        }
-
-        // Draw data points
-        for (int i = 0; i < n.length; i++) {
-            double position = n[i] / 10000.0;
-            int x = PADDING + (int)(position * (WIDTH - PADDING - 100));
-
-            // Simple point (red)
-            int ys = (HEIGHT - PADDING) - (int)(simple[i] * (HEIGHT - 2 * PADDING) / maxVal);
-            g.setColor(new Color(220, 20, 60));
-            g.fillOval(x - 5, ys - 5, 10, 10);
-
-            // Karatsuba point (blue)
-            int yk = (HEIGHT - PADDING) - (int)(karatsuba[i] * (HEIGHT - 2 * PADDING) / maxVal);
-            g.setColor(new Color(30, 144, 255));
-            g.fillOval(x - 5, yk - 5, 10, 10);
         }
 
         // Legend with colored lines
