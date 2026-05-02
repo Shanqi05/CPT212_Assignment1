@@ -6,6 +6,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import common.OperationCounter;
 import common.DataGenerator;
 
@@ -120,14 +123,47 @@ public class Karatsuba {
         System.out.println();
         
         // Generate outputs
+        saveToCSV(nValues, karatsubaOps);
         drawKaratsubaGraph(nValues, karatsubaOps, "karatsuba_graph.png");
+        System.out.println("✓ CSV file 'karatsuba_results.csv' generated");
         System.out.println("✓ Graph saved as 'karatsuba_graph.png'");
+    }
+    
+    /**
+     * Get output directory (src folder)
+     */
+    private static String getOutputDir() {
+        String currentDir = System.getProperty("user.dir");
+        if (currentDir.endsWith("bin")) {
+            return currentDir.replace("\\bin", "").replace("/bin", "") + File.separator + "src";
+        }
+        return currentDir;
+    }
+    
+    /**
+     * Save results to CSV file
+     */
+    private static void saveToCSV(int[] n, long[] operations) {
+        try {
+            String outputDir = getOutputDir();
+            File outFile = new File(outputDir, "karatsuba_results.csv");
+            PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+            writer.println("n,Karatsuba");
+
+            for (int i = 0; i < n.length; i++) {
+                writer.printf("%d,%d\n", n[i], operations[i]);
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("Error writing CSV file: " + e.getMessage());
+        }
     }
     
     public static void drawKaratsubaGraph(int[] n, long[] ops, String filename) throws Exception {
         final int WIDTH = 1200;
         final int HEIGHT = 700;
         final int PADDING = 120;
+        String outputDir = getOutputDir();
         
         BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
@@ -247,6 +283,6 @@ public class Karatsuba {
         g.drawString("Karatsuba Operation", legendX + 35, legendY + 5);
 
         g.dispose();
-        ImageIO.write(img, "png", new File(filename));
+        ImageIO.write(img, "png", new File(outputDir, filename));
     }
 }

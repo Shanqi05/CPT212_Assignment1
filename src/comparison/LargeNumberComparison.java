@@ -4,11 +4,11 @@ import java.math.BigInteger;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.File;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.File;
 import common.DataGenerator;
 import simple.SimpleMultiplication;
 import karatsuba.Karatsuba;
@@ -63,15 +63,30 @@ public class LargeNumberComparison {
     }
 
     /**
+     * Get output directory (src folder)
+     */
+    private static String getOutputDir() {
+        String currentDir = System.getProperty("user.dir");
+        if (currentDir.endsWith("bin")) {
+            return currentDir.replace("\\bin", "").replace("/bin", "") + File.separator + "src";
+        }
+        return currentDir;
+    }
+    
+    /**
      * Save results to CSV file
      */
     private static void saveToCSV(int[] n, long[] simple, long[] karatsuba) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter("large_comparison_results.csv"))) {
+        try {
+            String outputDir = getOutputDir();
+            File outFile = new File(outputDir, "large_comparison_results.csv");
+            PrintWriter writer = new PrintWriter(new FileWriter(outFile));
             writer.println("n,Simple_Multiplication,Karatsuba");
 
             for (int i = 0; i < n.length; i++) {
                 writer.printf("%d,%d,%d\n", n[i], simple[i], karatsuba[i]);
             }
+            writer.close();
         } catch (IOException e) {
             System.err.println("Error writing CSV file: " + e.getMessage());
         }
@@ -81,6 +96,7 @@ public class LargeNumberComparison {
      * Draw comparison graph for large numbers
      */
     public static void drawComparisonGraph(int[] n, long[] simple, long[] karatsuba, String filename) throws Exception {
+        String outputDir = getOutputDir();
         BufferedImage img = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -227,7 +243,7 @@ public class LargeNumberComparison {
         g.drawString("Karatsuba Operation", legendX + 35, legendY + spacing + 5);
 
         g.dispose();
-        ImageIO.write(img, "png", new File(filename));
+        ImageIO.write(img, "png", new File(outputDir, filename));
     }
 }
 
