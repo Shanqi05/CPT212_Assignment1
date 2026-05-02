@@ -6,6 +6,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.util.Scanner;
 import common.OperationCounter;
 import common.DataGenerator;
 
@@ -18,8 +19,8 @@ public class SimpleMultiplication {
 
     /**
      * Multiply two BigIntegers using simple multiplication algorithm
-     * @param x first number
-     * @param y second number
+     * @param x first number (Multiplicand)
+     * @param y second number (Multiplier)
      * @return product of x and y
      */
     public static BigInteger multiply(BigInteger x, BigInteger y) {
@@ -34,92 +35,194 @@ public class SimpleMultiplication {
         counter.recordAssignment(2);
         
         int[] result = new int[m + n];
-        counter.recordAssignment(1); // Array initialization
+        counter.recordAssignment(1); 
+
+        boolean printSteps = (m <= 10 && n <= 10);
+        // Padding width for alignment: multiplicand length + multiplier length
+        int W = m + n; 
         
-        // Outer loop: iterates m times
-        for (int i = m - 1; i >= 0; i--) {
-            counter.recordComparison(1); // i >= 0
-            counter.recordAssignment(1); // Implicit: i--
+        if (printSteps) {
+            System.out.printf("%" + W + "s\n", sx);
+            System.out.printf("x%" + (W - 1) + "s\n", sy);
+            System.out.println("-".repeat(W + 40));
+        }
+        
+        for (int j = n - 1; j >= 0; j--) {
+            counter.recordComparison(1); 
+            counter.recordAssignment(1); 
             
-            int dx = sx.charAt(i) - '0';
-            counter.recordArrayAccess(1); // charAt access
-            counter.recordAssignment(2); // dx and subtraction result
+            int dy = sy.charAt(j) - '0';
+            counter.recordArrayAccess(1); 
+            counter.recordAssignment(2); 
             counter.recordSubtraction(1);
             
             int carry = 0;
             counter.recordAssignment(1);
+
+            int[] currentPartials = new int[m];
+            int[] currentCarriers = new int[m];
             
-            // Inner loop: iterates n times for each i
-            for (int j = n - 1; j >= 0; j--) {
-                counter.recordComparison(1); // j >= 0
-                counter.recordAssignment(1); // Implicit: j--
+            for (int i = m - 1; i >= 0; i--) {
+                counter.recordComparison(1); 
+                counter.recordAssignment(1); 
                 
-                int dy = sy.charAt(j) - '0';
+                int dx = sx.charAt(i) - '0';
                 counter.recordArrayAccess(1);
                 counter.recordAssignment(1);
                 counter.recordSubtraction(1);
                 
-                // Calculate: result[i+j+1] + (dx*dy) + carry
-                int sum = result[i + j + 1] + (dx * dy) + carry;
-                counter.recordArrayAccess(1); // result array access
-                counter.recordMultiplication(1); // dx * dy
-                counter.recordAddition(2); // array_value + product, then + carry
-                counter.recordAssignment(1); // sum assignment
+                int prod = (dx * dy) + carry;
+                counter.recordMultiplication(1);
+                counter.recordAddition(1);
+                counter.recordAssignment(1);
                 
-                // Store: result[i+j+1] = sum % 10
-                result[i + j + 1] = sum % 10;
+                currentPartials[i] = prod % 10;
+                carry = prod / 10;
+                currentCarriers[i] = carry;
+
+                // Step 2 logic: accumulate in result array
+                result[i + j + 1] += currentPartials[i];
+                
+                counter.recordArrayAccess(1);
                 counter.recordModulo(1);
-                counter.recordArrayAccess(1); // write to array
-                counter.recordAssignment(1);
-                
-                // Calculate: carry = sum / 10
-                carry = sum / 10;
                 counter.recordDivision(1);
-                counter.recordAssignment(1);
+                counter.recordAssignment(2);
             }
             
-            // Final carry addition
-            result[i] += carry;
-            counter.recordArrayAccess(2); // read and write
+            result[j] += carry;
+            counter.recordArrayAccess(2); 
             counter.recordAddition(1);
+            counter.recordAssignment(1);
+
+            if (printSteps) {
+                StringBuilder pStr = new StringBuilder();
+                StringBuilder cStr = new StringBuilder();
+                for (int p : currentPartials) pStr.append(p);
+                for (int c : currentCarriers) cStr.append(c);
+                
+                int shift = (n - 1) - j;
+                
+                // Bulletproof string padding (avoids the %0s format error)
+                String pRow = String.format("%" + (W - shift) + "s", pStr.toString()) + " ".repeat(shift);
+                String cRow = String.format("%" + (W - shift - 1) + "s", cStr.toString()) + " ".repeat(shift + 1);
+                
+                // Print exactly to match the rubric's visual flow
+                System.out.printf("%s partial products for (=%s x %d)\n", pRow, sx, dy);
+                System.out.printf("%s carriers for (%s x %d)\n", cRow, sx, dy);
+            }
+        }
+        
+        // Final carry handling for result array
+        int finalCarry = 0;
+        counter.recordAssignment(1);
+        for (int k = result.length - 1; k >= 0; k--) {
+            counter.recordComparison(1);
+            counter.recordAssignment(1); // For the k--
+
+            int val = result[k] + finalCarry;
+            counter.recordArrayAccess(1);
+            counter.recordAddition(1);
+            counter.recordAssignment(1);
+
+            result[k] = val % 10;
+            counter.recordModulo(1);
+            counter.recordArrayAccess(1);
+            counter.recordAssignment(1);
+
+            finalCarry = val / 10;
+            counter.recordDivision(1);
             counter.recordAssignment(1);
         }
         
-        // Convert array back to BigInteger for return
         StringBuilder sb = new StringBuilder();
         counter.recordAssignment(1);
-        
+
+        boolean leadingZero = true;
+        counter.recordAssignment(1);
+
         for (int digit : result) {
+            counter.recordArrayAccess(1); 
+            counter.recordAssignment(1); // For the implicit array iteration
+
+            counter.recordComparison(2); // For the boolean check (leadingZero && digit == 0)
+            if (leadingZero && digit == 0) continue;
+
+            leadingZero = false;
+            counter.recordAssignment(1);
+
             sb.append(digit);
-            counter.recordAddition(1); // for loop iteration
-            counter.recordArrayAccess(1); // array access
-            counter.recordAssignment(1); // append operation
+            counter.recordAddition(1); // Treating string append as addition
+            counter.recordAssignment(1);
         }
         
-        return new BigInteger(sb.toString());
+        String res = sb.length() == 0 ? "0" : sb.toString();
+        counter.recordComparison(1);
+        counter.recordAssignment(1);
+        
+        if (printSteps) {
+            System.out.println("+ " + "-".repeat(W + 38));
+            System.out.printf("%" + W + "s\n\n", res);
+        }
+        
+        return new BigInteger(res);
     }
     
     public static void main(String[] args) throws Exception {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("=========================================");
+        System.out.println("         MANUAL MULTIPLICATION           ");
+        System.out.println("=========================================");
+        System.out.print("Enter the Top Number (Multiplicand) : ");
+        String input1 = scanner.nextLine().trim();
+        System.out.print("Enter the Bottom Number (Multiplier): ");
+        String input2 = scanner.nextLine().trim();
+        
+        if (!input1.isEmpty() && !input2.isEmpty()) {
+            BigInteger num1 = new BigInteger(input1);
+            BigInteger num2 = new BigInteger(input2);
+            
+            System.out.println("\n--- Manual Step-by-Step Output ---");
+            multiply(num1, num2);
+        }
+        
+        System.out.println("=========================================\n");
+        System.out.println("Starting Automated Algorithm Analysis...");
+
+        int[] nValues = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+        long[] simpleOps = new long[nValues.length];
+
+        System.out.println("--- STEP-BY-STEP VERIFICATION (n = 1 to 10) ---");
+        
+        // 1. Calculate everything and print the step-by-step BEFORE the table
+        for (int i = 0; i < nValues.length; i++) {
+            BigInteger[] data = DataGenerator.generate(nValues[i]);
+
+            if (nValues[i] <= 10) {
+                System.out.println("Testing n=" + nValues[i] + ": " + data[0] + " x " + data[1]);
+            }
+
+            multiply(data[0], data[1]);
+            simpleOps[i] = counter.getTotalOperations();
+        }
+        
+        // 2. Now print the clean, uninterrupted table
         System.out.println("Simple Multiplication Algorithm Analysis");
         System.out.println("=========================================");
         System.out.printf("%-15s | %-20s\n", "n (Digits)", "Total Operations");
         System.out.println("-----------------------------------------");
         
-        int[] nValues = {2, 50, 100, 200, 300, 400, 500, 600, 700, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
-        long[] simpleOps = new long[nValues.length];
-        
         for (int i = 0; i < nValues.length; i++) {
-            BigInteger[] data = DataGenerator.generate(nValues[i]);
-            multiply(data[0], data[1]);
-            simpleOps[i] = counter.getTotalOperations();
             System.out.printf("%-15d | %-20d\n", nValues[i], simpleOps[i]);
         }
-        System.out.println("=========================================");
-        System.out.println();
+        
+        System.out.println("=========================================\n");
         
         // Generate outputs
         drawSimpleMultiplicationGraph(nValues, simpleOps, "simple_multiplication_graph.png");
         System.out.println("✓ Graph saved as 'simple_multiplication_graph.png'");
+
+        scanner.close();
     }
     
     public static void drawSimpleMultiplicationGraph(int[] n, long[] ops, String filename) throws Exception {
