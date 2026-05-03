@@ -57,9 +57,6 @@ public class SimpleMultiplication {
             counter.recordArrayAccess(1); 
             counter.recordAssignment(2); 
             counter.recordSubtraction(1);
-            
-            int carry = 0;
-            counter.recordAssignment(1);
 
             int[] currentPartials = new int[m];
             int[] currentCarriers = new int[m];
@@ -73,27 +70,25 @@ public class SimpleMultiplication {
                 counter.recordAssignment(1);
                 counter.recordSubtraction(1);
                 
-                int prod = (dx * dy) + carry;
+                int prod = (dx * dy);
                 counter.recordMultiplication(1);
-                counter.recordAddition(1);
                 counter.recordAssignment(1);
                 
                 currentPartials[i] = prod % 10;
-                carry = prod / 10;
-                currentCarriers[i] = carry;
-
-                result[i + j + 1] += currentPartials[i];
+                currentCarriers[i] = prod / 10;
                 
-                counter.recordArrayAccess(1);
+                counter.recordArrayAccess(2);
                 counter.recordModulo(1);
                 counter.recordDivision(1);
                 counter.recordAssignment(2);
+
+                result[i + j + 1] += currentPartials[i];
+                result[i + j] += currentCarriers[i];
+
+                counter.recordArrayAccess(4);
+                counter.recordAddition(2);
+                counter.recordAssignment(2);
             }
-            
-            result[j] += carry;
-            counter.recordArrayAccess(2); 
-            counter.recordAddition(1);
-            counter.recordAssignment(1);
 
             if (printSteps) {
                 StringBuilder pStr = new StringBuilder();
@@ -201,37 +196,47 @@ public class SimpleMultiplication {
         }
         
         System.out.println("=========================================\n");
-        System.out.println("Starting Automated Algorithm Analysis...\n");
 
-        disableVerboseOutput = true;
+        System.out.print("Do you want to run the automated algorithm analysis (n=1 to 10000)? (yes/no): ");
+        String runAnalysis = scanner.nextLine().trim().toLowerCase();
 
-        int[] nValues = new int[10000];
-        for (int i = 0; i < 10000; i++) {
-            nValues[i] = i + 1;
+        if (runAnalysis.equals("yes") || runAnalysis.equals("y")) {
+            System.out.println("Starting Automated Algorithm Analysis...\n");
+
+            disableVerboseOutput = true;
+
+            int[] nValues = new int[10000];
+            for (int i = 0; i < 10000; i++) {
+                nValues[i] = i + 1;
+            }
+        
+            long[] simpleOps = new long[nValues.length];
+
+            System.out.println("╔════════════════════════════════════════════════════════════╗");
+            System.out.println("║     Simple Multiplication Algorithm Analysis (n=1-10000)   ║");
+            System.out.println("╠════════════════════╦═══════════════════════════════════════╣");
+            System.out.println("║   n (Digits)       ║      Total Operations                 ║");
+            System.out.println("╠════════════════════╬═══════════════════════════════════════╣");
+        
+            for (int i = 0; i < nValues.length; i++) {
+                BigInteger[] data = DataGenerator.generate(nValues[i]);
+                multiply(data[0], data[1]);
+                simpleOps[i] = counter.getTotalOperations();
+                System.out.printf("║ %18d ║ %37d ║\n", nValues[i], simpleOps[i]);
+            }
+        
+            System.out.println("╚════════════════════╩═══════════════════════════════════════╝\n");
+        
+            saveToCSV(nValues, simpleOps);
+            drawSimpleMultiplicationGraph(nValues, simpleOps, "simple_multiplication_graph.png");
+            System.out.println("✓ CSV file 'simple_multiplication_results.csv' generated");
+            System.out.println("✓ Graph saved as 'simple_multiplication_graph.png'");
+        } else{
+            System.out.println("\nSkipping Automated Algorithm Analysis. Program finished.");
         }
-        
-        long[] simpleOps = new long[nValues.length];
-
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║     Simple Multiplication Algorithm Analysis (n=1-10000)    ║");
-        System.out.println("╠════════════════════╦═══════════════════════════════════════╣");
-        System.out.println("║   n (Digits)       ║      Total Operations               ║");
-        System.out.println("╠════════════════════╬═══════════════════════════════════════╣");
-        
-        for (int i = 0; i < nValues.length; i++) {
-            BigInteger[] data = DataGenerator.generate(nValues[i]);
-            multiply(data[0], data[1]);
-            simpleOps[i] = counter.getTotalOperations();
-            System.out.printf("║ %18d ║ %35d ║\n", nValues[i], simpleOps[i]);
-        }
-        
-        System.out.println("╚════════════════════╩═══════════════════════════════════════╝\n");
-        
-        saveToCSV(nValues, simpleOps);
-        drawSimpleMultiplicationGraph(nValues, simpleOps, "simple_multiplication_graph.png");
-        System.out.println("✓ CSV file 'simple_multiplication_results.csv' generated");
-        System.out.println("✓ Graph saved as 'simple_multiplication_graph.png'");
+            scanner.close();
     }
+
     
     private static String getOutputDir() {
         String currentDir = System.getProperty("user.dir");
